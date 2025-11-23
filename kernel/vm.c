@@ -484,3 +484,37 @@ ismapped(pagetable_t pagetable, uint64 va)
   }
   return 0;
 }
+
+// Implementacion Tarea 3: Proteccion de Lectura
+int
+uvm_rdprotect(uint64 va, uint64 len, int enable_read)
+{
+  struct proc *p = myproc();
+  pte_t *pte;
+  uint64 a, end;
+
+  if(len <= 0 || (va % PGSIZE) != 0) 
+    return -1; 
+
+  end = va + len * PGSIZE; 
+
+  for(a = va; a < end; a += PGSIZE){
+    if(a >= MAXVA || a >= p->sz) 
+      return -1; 
+
+    if((pte = walk(p->pagetable, a, 0)) == 0)
+      return -1; 
+
+    if((*pte & PTE_V) == 0 || (*pte & PTE_U) == 0)
+      return -1;
+
+    // Logica principal: Modificar bit PTE_R
+    if(enable_read) {
+      *pte |= PTE_R;  // Restaurar lectura
+    } else {
+      *pte &= ~PTE_R; // Quitar lectura
+    }
+  }
+  sfence_vma(); 
+  return 0;
+}

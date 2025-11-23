@@ -105,3 +105,38 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_getppid(void)
+{
+    struct proc *p = myproc();
+    if(p->parent)
+        return p->parent->pid;
+    return -1;  // si no tiene padre (ej: init)
+}
+
+uint64
+sys_mrdprotect(void)
+{
+  uint64 addr;
+  int len;
+
+  // Versión corregida para tu XV6:
+  // Llamamos directamente sin verificar return porque son void
+  argaddr(0, &addr);
+  argint(1, &len);
+
+  return uvm_rdprotect(addr, len, 0);
+}
+
+uint64
+sys_munrdprotect(void)
+{
+  uint64 addr;
+  int len;
+
+  argaddr(0, &addr);
+  argint(1, &len);
+
+  return uvm_rdprotect(addr, len, 1);
+}
